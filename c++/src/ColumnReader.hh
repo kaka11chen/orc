@@ -102,6 +102,11 @@ namespace orc {
     uint64_t columnId;
     MemoryPool& memoryPool;
 
+    static bool shouldProcessChild(ReaderCategory readerCategory, const ReadPhase& readPhase) {
+        return readPhase.contains(readerCategory)
+        || readerCategory == ReaderCategory::FILTER_PARENT;
+    }
+
   public:
     ColumnReader(const Type& type, StripeStreams& stipe);
 
@@ -112,7 +117,7 @@ namespace orc {
      * @param numValues the number of values to skip
      * @return the number of non-null values skipped
      */
-    virtual uint64_t skip(uint64_t numValues);
+    virtual uint64_t skip(uint64_t numValues, const ReadPhase& readPhase);
 
     /**
      * Read the next group of values into this rowBatch.
@@ -147,15 +152,16 @@ namespace orc {
      * @param positions a list of PositionProviders storing the positions
      */
     virtual void seekToRowGroup(
-      std::unordered_map<uint64_t, PositionProvider>& positions);
+      std::unordered_map<uint64_t, PositionProvider>& positions, const ReadPhase& readPhase);
 
   };
 
   /**
    * Create a reader for the given stripe.
    */
-  std::unique_ptr<ColumnReader> buildReader(const Type& type,
-                                            StripeStreams& stripe);
+  ColumnReader* buildReader(const Type& type,
+                                            StripeStreams& stripe,
+                                            const ReadPhase& readPhase);
 }
 
 #endif

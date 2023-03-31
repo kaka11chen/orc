@@ -25,7 +25,14 @@
 
 namespace orc {
 
-  Type::~Type() {
+
+    const ReadPhase ReadPhase::ALL = ReadPhase::fromCategories({ ReaderCategory::FILTER_CHILD, ReaderCategory::FILTER_PARENT, ReaderCategory::NON_FILTER });
+    const ReadPhase ReadPhase::LEADERS = ReadPhase::fromCategories({ ReaderCategory::FILTER_CHILD, ReaderCategory::FILTER_PARENT });
+    const ReadPhase ReadPhase::FOLLOWERS = ReadPhase::fromCategories({ ReaderCategory::NON_FILTER });
+    const ReadPhase ReadPhase::LEADER_PARENTS = ReadPhase::fromCategories({ ReaderCategory::FILTER_PARENT });
+    const ReadPhase ReadPhase::FOLLOWERS_AND_PARENTS = ReadPhase::fromCategories({ ReaderCategory::FILTER_PARENT, ReaderCategory::NON_FILTER });
+
+    Type::~Type() {
     // PASS
   }
 
@@ -38,6 +45,7 @@ namespace orc {
     precision = 0;
     scale = 0;
     subtypeCount = 0;
+    readerCategory = ReaderCategory::NON_FILTER;
   }
 
   TypeImpl::TypeImpl(TypeKind _kind, uint64_t _maxLength) {
@@ -49,6 +57,7 @@ namespace orc {
     precision = 0;
     scale = 0;
     subtypeCount = 0;
+    readerCategory = ReaderCategory::NON_FILTER;
   }
 
   TypeImpl::TypeImpl(TypeKind _kind, uint64_t _precision,
@@ -61,6 +70,7 @@ namespace orc {
     precision = _precision;
     scale = _scale;
     subtypeCount = 0;
+    readerCategory = ReaderCategory::NON_FILTER;
   }
 
   uint64_t TypeImpl::assignIds(uint64_t root) const {
@@ -75,11 +85,11 @@ namespace orc {
 
   void TypeImpl::ensureIdAssigned() const {
     if (columnId == -1) {
-      const TypeImpl* root = this;
-      while (root->parent != nullptr) {
-        root = root->parent;
+      const Type* root = this;
+      while (root->getParent() != nullptr) {
+        root = root->getParent();
       }
-      root->assignIds(0);
+        ((const TypeImpl*)root)->assignIds(0);
     }
   }
 
@@ -101,11 +111,20 @@ namespace orc {
     return subtypeCount;
   }
 
-  const Type* TypeImpl::getSubtype(uint64_t i) const {
+    Type* TypeImpl::getParent() const {
+        return parent;
+    }
+
+    const Type* TypeImpl::getSubtype(uint64_t i) const {
     return subTypes[i].get();
   }
 
-  const std::string& TypeImpl::getFieldName(uint64_t i) const {
+    Type* TypeImpl::getSubtype(uint64_t i) {
+        return subTypes[i].get();
+    }
+
+
+    const std::string& TypeImpl::getFieldName(uint64_t i) const {
     return fieldNames[i];
   }
 
@@ -157,7 +176,15 @@ namespace orc {
     return it->second;
   }
 
-  void TypeImpl::setIds(uint64_t _columnId, uint64_t _maxColumnId) {
+  ReaderCategory TypeImpl::getReaderCategory() const {
+      return readerCategory;
+  }
+
+  void TypeImpl::setReaderCategory(ReaderCategory _readerCategory) {
+      readerCategory = _readerCategory;
+  }
+
+    void TypeImpl::setIds(uint64_t _columnId, uint64_t _maxColumnId) {
     columnId = static_cast<int64_t>(_columnId);
     maximumColumnId = static_cast<int64_t>(_maxColumnId);
   }

@@ -26,12 +26,23 @@
 #include <iostream>
 #include <string>
 
+class ORCFilterImpl : public orc::ORCFilter {
+    public:
+        ORCFilterImpl() = default;
+        ~ORCFilterImpl() override = default;
+        void filter(orc::ColumnVectorBatch& data, uint16_t* sel, uint16_t size, void* arg = nullptr) const override {
+        }
+    private:
+    };
+
+
 void scanFile(std::ostream & out, const char* filename, uint64_t batchSize,
               const orc::RowReaderOptions& rowReaderOpts) {
   orc::ReaderOptions readerOpts;
   std::unique_ptr<orc::Reader> reader =
     orc::createReader(orc::readFile(filename), readerOpts);
-  std::unique_ptr<orc::RowReader> rowReader = reader->createRowReader(rowReaderOpts);
+    std::unique_ptr<orc::ORCFilter> filter = std::unique_ptr<orc::ORCFilter>(new ORCFilterImpl());
+    std::unique_ptr<orc::RowReader> rowReader = reader->createRowReader(rowReaderOpts, filter.get());
   std::unique_ptr<orc::ColumnVectorBatch> batch =
     rowReader->createRowBatch(batchSize);
 
@@ -50,16 +61,18 @@ int main(int argc, char* argv[]) {
     {"help", no_argument, ORC_NULLPTR, 'h'},
     {"batch", required_argument, ORC_NULLPTR, 'b'},
     {"columns", required_argument, ORC_NULLPTR, 'c'},
+    {"filter_col_names", required_argument, ORC_NULLPTR, 'f'},
     {ORC_NULLPTR, 0, ORC_NULLPTR, 0}
   };
   bool helpFlag = false;
   uint64_t batchSize = 1024;
   std::list<uint64_t> cols;
-  orc::RowReaderOptions rowReaderOptions;
+    std::list<std::string> colNames;
+    orc::RowReaderOptions rowReaderOptions;
   int opt;
   char *tail;
   do {
-    opt = getopt_long(argc, argv, "hb:c:", longOptions, ORC_NULLPTR);
+    opt = getopt_long(argc, argv, "hb:c:f:", longOptions, ORC_NULLPTR);
     switch (opt) {
     case '?':
     case 'h':
@@ -84,6 +97,18 @@ int main(int argc, char* argv[]) {
       }
       break;
     }
+
+    case 'f': {
+        char *col = std::strtok(optarg, ",");
+        while (col) {
+            colNames.push_back(col);
+            col = std::strtok(ORC_NULLPTR, ",");
+        }
+        if (!colNames.empty()) {
+            rowReaderOptions.filter(colNames);
+        }
+        break;
+    }
     default: break;
     }
   } while (opt != -1);
@@ -93,7 +118,8 @@ int main(int argc, char* argv[]) {
   if (argc < 1 || helpFlag) {
     std::cerr << "Usage: orc-scan [-h] [--help]\n"
               << "                [-c 1,2,...] [--columns=1,2,...]\n"
-              << "                [-b<size>] [--batch=<size>] <filename>\n";
+            << "                [-f a,b,...] [--filter_col_names=a,b,...]\n"
+            << "                [-b<size>] [--batch=<size>] <filename>\n";
     return 1;
   } else {
     for(int i=0; i < argc; ++i) {

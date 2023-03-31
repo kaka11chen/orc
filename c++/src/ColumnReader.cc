@@ -61,7 +61,7 @@ namespace orc {
     // PASS
   }
 
-  uint64_t ColumnReader::skip(uint64_t numValues) {
+  uint64_t ColumnReader::skip(uint64_t numValues, const ReadPhase& readPhase) {
     ByteRleDecoder* decoder = notNullDecoder.get();
     if (decoder) {
       // page through the values that we want to skip
@@ -115,7 +115,7 @@ namespace orc {
   }
 
   void ColumnReader::seekToRowGroup(
-    std::unordered_map<uint64_t, PositionProvider>& positions) {
+    std::unordered_map<uint64_t, PositionProvider>& positions, const ReadPhase& readPhase) {
     if (notNullDecoder.get()) {
       notNullDecoder->seek(positions.at(columnId));
     }
@@ -143,14 +143,14 @@ namespace orc {
     BooleanColumnReader(const Type& type, StripeStreams& stipe);
     ~BooleanColumnReader() override;
 
-    uint64_t skip(uint64_t numValues) override;
+    uint64_t skip(uint64_t numValues, const ReadPhase& readPhase) override;
 
     void next(ColumnVectorBatch& rowBatch,
               uint64_t numValues,
               char* notNull) override;
 
     void seekToRowGroup(
-      std::unordered_map<uint64_t, PositionProvider>& positions) override;
+      std::unordered_map<uint64_t, PositionProvider>& positions, const ReadPhase& readPhase) override;
   };
 
   BooleanColumnReader::BooleanColumnReader(const Type& type,
@@ -167,8 +167,8 @@ namespace orc {
     // PASS
   }
 
-  uint64_t BooleanColumnReader::skip(uint64_t numValues) {
-    numValues = ColumnReader::skip(numValues);
+  uint64_t BooleanColumnReader::skip(uint64_t numValues, const ReadPhase& readPhase) {
+    numValues = ColumnReader::skip(numValues, readPhase);
     rle->skip(numValues);
     return numValues;
   }
@@ -186,8 +186,8 @@ namespace orc {
   }
 
   void BooleanColumnReader::seekToRowGroup(
-    std::unordered_map<uint64_t, PositionProvider>& positions) {
-    ColumnReader::seekToRowGroup(positions);
+    std::unordered_map<uint64_t, PositionProvider>& positions, const ReadPhase& readPhase) {
+    ColumnReader::seekToRowGroup(positions, readPhase);
     rle->seek(positions.at(columnId));
   }
 
@@ -199,14 +199,14 @@ namespace orc {
     ByteColumnReader(const Type& type, StripeStreams& stipe);
     ~ByteColumnReader() override;
 
-    uint64_t skip(uint64_t numValues) override;
+    uint64_t skip(uint64_t numValues, const ReadPhase& readPhase) override;
 
     void next(ColumnVectorBatch& rowBatch,
               uint64_t numValues,
               char* notNull) override;
 
     void seekToRowGroup(
-      std::unordered_map<uint64_t, PositionProvider>& positions) override;
+      std::unordered_map<uint64_t, PositionProvider>& positions, const ReadPhase& readPhase) override;
   };
 
   ByteColumnReader::ByteColumnReader(const Type& type,
@@ -223,8 +223,8 @@ namespace orc {
     // PASS
   }
 
-  uint64_t ByteColumnReader::skip(uint64_t numValues) {
-    numValues = ColumnReader::skip(numValues);
+  uint64_t ByteColumnReader::skip(uint64_t numValues, const ReadPhase& readPhase) {
+    numValues = ColumnReader::skip(numValues, readPhase);
     rle->skip(numValues);
     return numValues;
   }
@@ -242,8 +242,8 @@ namespace orc {
   }
 
   void ByteColumnReader::seekToRowGroup(
-    std::unordered_map<uint64_t, PositionProvider>& positions) {
-    ColumnReader::seekToRowGroup(positions);
+    std::unordered_map<uint64_t, PositionProvider>& positions, const ReadPhase& readPhase) {
+    ColumnReader::seekToRowGroup(positions, readPhase);
     rle->seek(positions.at(columnId));
   }
 
@@ -255,14 +255,14 @@ namespace orc {
     IntegerColumnReader(const Type& type, StripeStreams& stripe);
     ~IntegerColumnReader() override;
 
-    uint64_t skip(uint64_t numValues) override;
+    uint64_t skip(uint64_t numValues, const ReadPhase& readPhase) override;
 
     void next(ColumnVectorBatch& rowBatch,
               uint64_t numValues,
               char* notNull) override;
 
     void seekToRowGroup(
-      std::unordered_map<uint64_t, PositionProvider>& positions) override;
+      std::unordered_map<uint64_t, PositionProvider>& positions, const ReadPhase& readPhase) override;
   };
 
   IntegerColumnReader::IntegerColumnReader(const Type& type,
@@ -280,8 +280,8 @@ namespace orc {
     // PASS
   }
 
-  uint64_t IntegerColumnReader::skip(uint64_t numValues) {
-    numValues = ColumnReader::skip(numValues);
+  uint64_t IntegerColumnReader::skip(uint64_t numValues, const ReadPhase& readPhase) {
+    numValues = ColumnReader::skip(numValues, readPhase);
     rle->skip(numValues);
     return numValues;
   }
@@ -295,8 +295,8 @@ namespace orc {
   }
 
   void IntegerColumnReader::seekToRowGroup(
-    std::unordered_map<uint64_t, PositionProvider>& positions) {
-    ColumnReader::seekToRowGroup(positions);
+    std::unordered_map<uint64_t, PositionProvider>& positions, const ReadPhase& readPhase) {
+    ColumnReader::seekToRowGroup(positions, readPhase);
     rle->seek(positions.at(columnId));
   }
 
@@ -315,14 +315,14 @@ namespace orc {
                           bool isInstantType);
     ~TimestampColumnReader() override;
 
-    uint64_t skip(uint64_t numValues) override;
+    uint64_t skip(uint64_t numValues, const ReadPhase& readPhase) override;
 
     void next(ColumnVectorBatch& rowBatch,
               uint64_t numValues,
               char* notNull) override;
 
     void seekToRowGroup(
-      std::unordered_map<uint64_t, PositionProvider>& positions) override;
+      std::unordered_map<uint64_t, PositionProvider>& positions, const ReadPhase& readPhase) override;
   };
 
 
@@ -354,8 +354,8 @@ namespace orc {
     // PASS
   }
 
-  uint64_t TimestampColumnReader::skip(uint64_t numValues) {
-    numValues = ColumnReader::skip(numValues);
+  uint64_t TimestampColumnReader::skip(uint64_t numValues, const ReadPhase& readPhase) {
+    numValues = ColumnReader::skip(numValues, readPhase);
     secondsRle->skip(numValues);
     nanoRle->skip(numValues);
     return numValues;
@@ -406,8 +406,8 @@ namespace orc {
   }
 
   void TimestampColumnReader::seekToRowGroup(
-    std::unordered_map<uint64_t, PositionProvider>& positions) {
-    ColumnReader::seekToRowGroup(positions);
+    std::unordered_map<uint64_t, PositionProvider>& positions, const ReadPhase& readPhase) {
+    ColumnReader::seekToRowGroup(positions, readPhase);
     secondsRle->seek(positions.at(columnId));
     nanoRle->seek(positions.at(columnId));
   }
@@ -417,14 +417,14 @@ namespace orc {
     DoubleColumnReader(const Type& type, StripeStreams& stripe);
     ~DoubleColumnReader() override;
 
-    uint64_t skip(uint64_t numValues) override;
+    uint64_t skip(uint64_t numValues, const ReadPhase& readPhase) override;
 
     void next(ColumnVectorBatch& rowBatch,
               uint64_t numValues,
               char* notNull) override;
 
     void seekToRowGroup(
-      std::unordered_map<uint64_t, PositionProvider>& positions) override;
+      std::unordered_map<uint64_t, PositionProvider>& positions, const ReadPhase& readPhase) override;
 
   private:
     std::unique_ptr<SeekableInputStream> inputStream;
@@ -481,8 +481,8 @@ namespace orc {
     // PASS
   }
 
-  uint64_t DoubleColumnReader::skip(uint64_t numValues) {
-    numValues = ColumnReader::skip(numValues);
+  uint64_t DoubleColumnReader::skip(uint64_t numValues, const ReadPhase& readPhase) {
+    numValues = ColumnReader::skip(numValues, readPhase);
 
     if (static_cast<size_t>(bufferEnd - bufferPointer) >=
         bytesPerValue * numValues) {
@@ -555,8 +555,8 @@ namespace orc {
   }
 
   void DoubleColumnReader::seekToRowGroup(
-    std::unordered_map<uint64_t, PositionProvider>& positions) {
-    ColumnReader::seekToRowGroup(positions);
+    std::unordered_map<uint64_t, PositionProvider>& positions, const ReadPhase& readPhase) {
+    ColumnReader::seekToRowGroup(positions, readPhase);
     inputStream->seek(positions.at(columnId));
     // clear buffer state after seek
     bufferEnd = nullptr;
@@ -572,7 +572,7 @@ namespace orc {
     StringDictionaryColumnReader(const Type& type, StripeStreams& stipe);
     ~StringDictionaryColumnReader() override;
 
-    uint64_t skip(uint64_t numValues) override;
+    uint64_t skip(uint64_t numValues, const ReadPhase& readPhase) override;
 
     void next(ColumnVectorBatch& rowBatch,
               uint64_t numValues,
@@ -583,7 +583,7 @@ namespace orc {
                       char* notNull) override;
 
     void seekToRowGroup(
-      std::unordered_map<uint64_t, PositionProvider>& positions) override;
+      std::unordered_map<uint64_t, PositionProvider>& positions, const ReadPhase& readPhase) override;
   };
 
   StringDictionaryColumnReader::StringDictionaryColumnReader
@@ -631,8 +631,8 @@ namespace orc {
     // PASS
   }
 
-  uint64_t StringDictionaryColumnReader::skip(uint64_t numValues) {
-    numValues = ColumnReader::skip(numValues);
+  uint64_t StringDictionaryColumnReader::skip(uint64_t numValues, const ReadPhase& readPhase) {
+    numValues = ColumnReader::skip(numValues, readPhase);
     rle->skip(numValues);
     return numValues;
   }
@@ -690,8 +690,8 @@ namespace orc {
   }
 
   void StringDictionaryColumnReader::seekToRowGroup(
-    std::unordered_map<uint64_t, PositionProvider>& positions) {
-    ColumnReader::seekToRowGroup(positions);
+    std::unordered_map<uint64_t, PositionProvider>& positions, const ReadPhase& readPhase) {
+    ColumnReader::seekToRowGroup(positions, readPhase);
     rle->seek(positions.at(columnId));
   }
 
@@ -717,14 +717,14 @@ namespace orc {
     StringDirectColumnReader(const Type& type, StripeStreams& stipe);
     ~StringDirectColumnReader() override;
 
-    uint64_t skip(uint64_t numValues) override;
+    uint64_t skip(uint64_t numValues, const ReadPhase& readPhase) override;
 
     void next(ColumnVectorBatch& rowBatch,
               uint64_t numValues,
               char *notNull) override;
 
     void seekToRowGroup(
-      std::unordered_map<uint64_t, PositionProvider>& positions) override;
+      std::unordered_map<uint64_t, PositionProvider>& positions, const ReadPhase& readPhase) override;
   };
 
   StringDirectColumnReader::StringDirectColumnReader
@@ -750,9 +750,9 @@ namespace orc {
     // PASS
   }
 
-  uint64_t StringDirectColumnReader::skip(uint64_t numValues) {
+  uint64_t StringDirectColumnReader::skip(uint64_t numValues, const ReadPhase& readPhase) {
     const size_t BUFFER_SIZE = 1024;
-    numValues = ColumnReader::skip(numValues);
+    numValues = ColumnReader::skip(numValues, readPhase);
     int64_t buffer[BUFFER_SIZE];
     uint64_t done = 0;
     size_t totalBytes = 0;
@@ -861,8 +861,8 @@ namespace orc {
   }
 
   void StringDirectColumnReader::seekToRowGroup(
-    std::unordered_map<uint64_t, PositionProvider>& positions) {
-    ColumnReader::seekToRowGroup(positions);
+    std::unordered_map<uint64_t, PositionProvider>& positions, const ReadPhase& readPhase) {
+    ColumnReader::seekToRowGroup(positions, readPhase);
     blobStream->seek(positions.at(columnId));
     lengthRle->seek(positions.at(columnId));
     // clear buffer state after seek
@@ -875,9 +875,9 @@ namespace orc {
     std::vector<std::unique_ptr<ColumnReader>> children;
 
   public:
-    StructColumnReader(const Type& type, StripeStreams& stipe);
+    StructColumnReader(const Type& type, StripeStreams& stipe, const ReadPhase& readPhase);
 
-    uint64_t skip(uint64_t numValues) override;
+    uint64_t skip(uint64_t numValues, const ReadPhase& readPhase) override;
 
     void next(ColumnVectorBatch& rowBatch,
               uint64_t numValues,
@@ -888,7 +888,7 @@ namespace orc {
               char *notNull) override;
 
     void seekToRowGroup(
-      std::unordered_map<uint64_t, PositionProvider>& positions) override;
+      std::unordered_map<uint64_t, PositionProvider>& positions, const ReadPhase& readPhase) override;
 
   private:
     template<bool encoded>
@@ -898,7 +898,8 @@ namespace orc {
   };
 
   StructColumnReader::StructColumnReader(const Type& type,
-                                         StripeStreams& stripe
+                                         StripeStreams& stripe,
+                                         const ReadPhase& readPhase
                                          ): ColumnReader(type, stripe) {
     // count the number of selected sub-columns
     const std::vector<bool> selectedColumns = stripe.getSelectedColumns();
@@ -906,8 +907,9 @@ namespace orc {
     case proto::ColumnEncoding_Kind_DIRECT:
       for(unsigned int i=0; i < type.getSubtypeCount(); ++i) {
         const Type& child = *type.getSubtype(i);
-        if (selectedColumns[static_cast<uint64_t>(child.getColumnId())]) {
-          children.push_back(buildReader(child, stripe));
+        if (selectedColumns[static_cast<uint64_t>(child.getColumnId())] &&
+            shouldProcessChild(child.getReaderCategory(), readPhase)) {
+          children.push_back(std::unique_ptr<ColumnReader>(buildReader(child, stripe, readPhase)));
         }
       }
       break;
@@ -919,10 +921,10 @@ namespace orc {
     }
   }
 
-  uint64_t StructColumnReader::skip(uint64_t numValues) {
-    numValues = ColumnReader::skip(numValues);
+  uint64_t StructColumnReader::skip(uint64_t numValues, const ReadPhase& readPhase) {
+    numValues = ColumnReader::skip(numValues, readPhase);
     for(auto& ptr : children) {
-      ptr->skip(numValues);
+      ptr->skip(numValues, readPhase);
     }
     return numValues;
   }
@@ -958,11 +960,11 @@ namespace orc {
   }
 
   void StructColumnReader::seekToRowGroup(
-    std::unordered_map<uint64_t, PositionProvider>& positions) {
-    ColumnReader::seekToRowGroup(positions);
+    std::unordered_map<uint64_t, PositionProvider>& positions, const ReadPhase& readPhase) {
+    ColumnReader::seekToRowGroup(positions, readPhase);
 
     for(auto& ptr : children) {
-      ptr->seekToRowGroup(positions);
+      ptr->seekToRowGroup(positions, readPhase);
     }
   }
 
@@ -972,10 +974,10 @@ namespace orc {
     std::unique_ptr<RleDecoder> rle;
 
   public:
-    ListColumnReader(const Type& type, StripeStreams& stipe);
+    ListColumnReader(const Type& type, StripeStreams& stipe, const ReadPhase& readPhase);
     ~ListColumnReader() override;
 
-    uint64_t skip(uint64_t numValues) override;
+    uint64_t skip(uint64_t numValues, const ReadPhase& readPhase) override;
 
     void next(ColumnVectorBatch& rowBatch,
               uint64_t numValues,
@@ -986,7 +988,7 @@ namespace orc {
               char *notNull) override;
 
     void seekToRowGroup(
-      std::unordered_map<uint64_t, PositionProvider>& positions) override;
+      std::unordered_map<uint64_t, PositionProvider>& positions, const ReadPhase& readPhase) override;
 
   private:
     template<bool encoded>
@@ -996,7 +998,8 @@ namespace orc {
   };
 
   ListColumnReader::ListColumnReader(const Type& type,
-                                     StripeStreams& stripe
+                                     StripeStreams& stripe,
+                                     const ReadPhase& readPhase
                                      ): ColumnReader(type, stripe) {
     // count the number of selected sub-columns
     const std::vector<bool> selectedColumns = stripe.getSelectedColumns();
@@ -1008,7 +1011,7 @@ namespace orc {
     rle = createRleDecoder(std::move(stream), false, vers, memoryPool);
     const Type& childType = *type.getSubtype(0);
     if (selectedColumns[static_cast<uint64_t>(childType.getColumnId())]) {
-      child = buildReader(childType, stripe);
+      child =  std::unique_ptr<ColumnReader>(buildReader(childType, stripe, readPhase));
     }
   }
 
@@ -1016,8 +1019,8 @@ namespace orc {
     // PASS
   }
 
-  uint64_t ListColumnReader::skip(uint64_t numValues) {
-    numValues = ColumnReader::skip(numValues);
+  uint64_t ListColumnReader::skip(uint64_t numValues, const ReadPhase& readPhase) {
+    numValues = ColumnReader::skip(numValues, readPhase);
     ColumnReader *childReader = child.get();
     if (childReader) {
       const uint64_t BUFFER_SIZE = 1024;
@@ -1032,7 +1035,7 @@ namespace orc {
         }
         lengthsRead += chunk;
       }
-      childReader->skip(childrenElements);
+      childReader->skip(childrenElements, readPhase);
     } else {
       rle->skip(numValues);
     }
@@ -1090,11 +1093,11 @@ namespace orc {
   }
 
   void ListColumnReader::seekToRowGroup(
-    std::unordered_map<uint64_t, PositionProvider>& positions) {
-    ColumnReader::seekToRowGroup(positions);
+    std::unordered_map<uint64_t, PositionProvider>& positions, const ReadPhase& readPhase) {
+    ColumnReader::seekToRowGroup(positions, readPhase);
     rle->seek(positions.at(columnId));
     if (child.get()) {
-      child->seekToRowGroup(positions);
+      child->seekToRowGroup(positions, readPhase);
     }
   }
 
@@ -1105,10 +1108,10 @@ namespace orc {
     std::unique_ptr<RleDecoder> rle;
 
   public:
-    MapColumnReader(const Type& type, StripeStreams& stipe);
+    MapColumnReader(const Type& type, StripeStreams& stipe, const ReadPhase& readPhase);
     ~MapColumnReader() override;
 
-    uint64_t skip(uint64_t numValues) override;
+    uint64_t skip(uint64_t numValues, const ReadPhase& readPhase) override;
 
     void next(ColumnVectorBatch& rowBatch,
               uint64_t numValues,
@@ -1119,7 +1122,7 @@ namespace orc {
                      char *notNull) override;
 
     void seekToRowGroup(
-      std::unordered_map<uint64_t, PositionProvider>& positions) override;
+      std::unordered_map<uint64_t, PositionProvider>& positions, const ReadPhase& readPhase) override;
 
   private:
     template<bool encoded>
@@ -1129,7 +1132,8 @@ namespace orc {
   };
 
   MapColumnReader::MapColumnReader(const Type& type,
-                                   StripeStreams& stripe
+                                   StripeStreams& stripe,
+                                   const ReadPhase& readPhase
                                    ): ColumnReader(type, stripe) {
     // Determine if the key and/or value columns are selected
     const std::vector<bool> selectedColumns = stripe.getSelectedColumns();
@@ -1141,11 +1145,11 @@ namespace orc {
     rle = createRleDecoder(std::move(stream), false, vers, memoryPool);
     const Type& keyType = *type.getSubtype(0);
     if (selectedColumns[static_cast<uint64_t>(keyType.getColumnId())]) {
-      keyReader = buildReader(keyType, stripe);
+      keyReader = std::unique_ptr<ColumnReader>(buildReader(keyType, stripe, readPhase));
     }
     const Type& elementType = *type.getSubtype(1);
     if (selectedColumns[static_cast<uint64_t>(elementType.getColumnId())]) {
-      elementReader = buildReader(elementType, stripe);
+      elementReader = std::unique_ptr<ColumnReader>(buildReader(elementType, stripe, readPhase));
     }
   }
 
@@ -1153,8 +1157,8 @@ namespace orc {
     // PASS
   }
 
-  uint64_t MapColumnReader::skip(uint64_t numValues) {
-    numValues = ColumnReader::skip(numValues);
+  uint64_t MapColumnReader::skip(uint64_t numValues, const ReadPhase& readPhase) {
+    numValues = ColumnReader::skip(numValues, readPhase);
     ColumnReader *rawKeyReader = keyReader.get();
     ColumnReader *rawElementReader = elementReader.get();
     if (rawKeyReader || rawElementReader) {
@@ -1171,10 +1175,10 @@ namespace orc {
         lengthsRead += chunk;
       }
       if (rawKeyReader) {
-        rawKeyReader->skip(childrenElements);
+        rawKeyReader->skip(childrenElements, readPhase);
       }
       if (rawElementReader) {
-        rawElementReader->skip(childrenElements);
+        rawElementReader->skip(childrenElements, readPhase);
       }
     } else {
       rle->skip(numValues);
@@ -1243,14 +1247,14 @@ namespace orc {
   }
 
   void MapColumnReader::seekToRowGroup(
-    std::unordered_map<uint64_t, PositionProvider>& positions) {
-    ColumnReader::seekToRowGroup(positions);
+    std::unordered_map<uint64_t, PositionProvider>& positions, const ReadPhase& readPhase) {
+    ColumnReader::seekToRowGroup(positions, readPhase);
     rle->seek(positions.at(columnId));
     if (keyReader.get()) {
-      keyReader->seekToRowGroup(positions);
+      keyReader->seekToRowGroup(positions, readPhase);
     }
     if (elementReader.get()) {
-      elementReader->seekToRowGroup(positions);
+      elementReader->seekToRowGroup(positions, readPhase);
     }
   }
 
@@ -1262,9 +1266,9 @@ namespace orc {
     uint64_t numChildren;
 
   public:
-    UnionColumnReader(const Type& type, StripeStreams& stipe);
+    UnionColumnReader(const Type& type, StripeStreams& stipe, const ReadPhase& readPhase);
 
-    uint64_t skip(uint64_t numValues) override;
+    uint64_t skip(uint64_t numValues, const ReadPhase& readPhase) override;
 
     void next(ColumnVectorBatch& rowBatch,
               uint64_t numValues,
@@ -1275,7 +1279,7 @@ namespace orc {
                      char *notNull) override;
 
     void seekToRowGroup(
-      std::unordered_map<uint64_t, PositionProvider>& positions) override;
+      std::unordered_map<uint64_t, PositionProvider>& positions, const ReadPhase& readPhase) override;
 
   private:
     template<bool encoded>
@@ -1285,7 +1289,8 @@ namespace orc {
   };
 
   UnionColumnReader::UnionColumnReader(const Type& type,
-                                       StripeStreams& stripe
+                                       StripeStreams& stripe,
+                                       const ReadPhase& readPhase
                                        ): ColumnReader(type, stripe) {
     numChildren = type.getSubtypeCount();
     childrenReader.resize(numChildren);
@@ -1300,14 +1305,15 @@ namespace orc {
     const std::vector<bool> selectedColumns = stripe.getSelectedColumns();
     for(unsigned int i=0; i < numChildren; ++i) {
       const Type &child = *type.getSubtype(i);
-      if (selectedColumns[static_cast<size_t>(child.getColumnId())]) {
-        childrenReader[i] = buildReader(child, stripe);
+      if (selectedColumns[static_cast<size_t>(child.getColumnId())] &&
+          shouldProcessChild(child.getReaderCategory(), readPhase)) {
+        childrenReader[i] = std::unique_ptr<ColumnReader>(buildReader(child, stripe, readPhase));
       }
     }
   }
 
-  uint64_t UnionColumnReader::skip(uint64_t numValues) {
-    numValues = ColumnReader::skip(numValues);
+  uint64_t UnionColumnReader::skip(uint64_t numValues, const ReadPhase& readPhase) {
+    numValues = ColumnReader::skip(numValues, readPhase);
     const uint64_t BUFFER_SIZE = 1024;
     char buffer[BUFFER_SIZE];
     uint64_t lengthsRead = 0;
@@ -1323,7 +1329,7 @@ namespace orc {
     }
     for(size_t i=0; i < numChildren; ++i) {
       if (counts[i] != 0 && childrenReader[i] != nullptr) {
-        childrenReader[i]->skip(static_cast<uint64_t>(counts[i]));
+        childrenReader[i]->skip(static_cast<uint64_t>(counts[i]), readPhase);
       }
     }
     return numValues;
@@ -1382,12 +1388,12 @@ namespace orc {
   }
 
   void UnionColumnReader::seekToRowGroup(
-    std::unordered_map<uint64_t, PositionProvider>& positions) {
-    ColumnReader::seekToRowGroup(positions);
+    std::unordered_map<uint64_t, PositionProvider>& positions, const ReadPhase& readPhase) {
+    ColumnReader::seekToRowGroup(positions, readPhase);
     rle->seek(positions.at(columnId));
     for(size_t i = 0; i < numChildren; ++i) {
       if (childrenReader[i] != nullptr) {
-        childrenReader[i]->seekToRowGroup(positions);
+        childrenReader[i]->seekToRowGroup(positions, readPhase);
       }
     }
   }
@@ -1463,14 +1469,14 @@ namespace orc {
     Decimal64ColumnReader(const Type& type, StripeStreams& stipe);
     ~Decimal64ColumnReader() override;
 
-    uint64_t skip(uint64_t numValues) override;
+    uint64_t skip(uint64_t numValues, const ReadPhase& readPhase) override;
 
     void next(ColumnVectorBatch& rowBatch,
               uint64_t numValues,
               char *notNull) override;
 
     void seekToRowGroup(
-      std::unordered_map<uint64_t, PositionProvider>& positions) override;
+      std::unordered_map<uint64_t, PositionProvider>& positions, const ReadPhase& readPhase) override;
   };
   const uint32_t Decimal64ColumnReader::MAX_PRECISION_64;
   const uint32_t Decimal64ColumnReader::MAX_PRECISION_128;
@@ -1517,8 +1523,8 @@ namespace orc {
     // PASS
   }
 
-  uint64_t Decimal64ColumnReader::skip(uint64_t numValues) {
-    numValues = ColumnReader::skip(numValues);
+  uint64_t Decimal64ColumnReader::skip(uint64_t numValues, const ReadPhase& readPhase) {
+    numValues = ColumnReader::skip(numValues, readPhase);
     uint64_t skipped = 0;
     while (skipped < numValues) {
       readBuffer();
@@ -1579,8 +1585,8 @@ namespace orc {
   }
 
   void Decimal64ColumnReader::seekToRowGroup(
-    std::unordered_map<uint64_t, PositionProvider>& positions) {
-    ColumnReader::seekToRowGroup(positions);
+    std::unordered_map<uint64_t, PositionProvider>& positions, const ReadPhase& readPhase) {
+    ColumnReader::seekToRowGroup(positions, readPhase);
     valueStream->seek(positions.at(columnId));
     scaleDecoder->seek(positions.at(columnId));
     // clear buffer state after seek
@@ -1773,15 +1779,15 @@ namespace orc {
   /**
    * Create a reader for the given stripe.
    */
-  std::unique_ptr<ColumnReader> buildReader(const Type& type,
-                                            StripeStreams& stripe) {
+  ColumnReader* buildReader(const Type& type,
+                                            StripeStreams& stripe,
+                                            const ReadPhase& readPhase) {
     switch (static_cast<int64_t>(type.getKind())) {
     case DATE:
     case INT:
     case LONG:
     case SHORT:
-      return std::unique_ptr<ColumnReader>(
-          new IntegerColumnReader(type, stripe));
+        return new IntegerColumnReader(type, stripe);
     case BINARY:
     case CHAR:
     case STRING:
@@ -1789,69 +1795,61 @@ namespace orc {
       switch (static_cast<int64_t>(stripe.getEncoding(type.getColumnId()).kind())){
       case proto::ColumnEncoding_Kind_DICTIONARY:
       case proto::ColumnEncoding_Kind_DICTIONARY_V2:
-        return std::unique_ptr<ColumnReader>(
-            new StringDictionaryColumnReader(type, stripe));
+          return new StringDictionaryColumnReader(type, stripe);
       case proto::ColumnEncoding_Kind_DIRECT:
       case proto::ColumnEncoding_Kind_DIRECT_V2:
-        return std::unique_ptr<ColumnReader>(
-            new StringDirectColumnReader(type, stripe));
+          return new StringDirectColumnReader(type, stripe);
       default:
         throw NotImplementedYet("buildReader unhandled string encoding");
       }
 
     case BOOLEAN:
-      return std::unique_ptr<ColumnReader>(
-          new BooleanColumnReader(type, stripe));
+      return new BooleanColumnReader(type, stripe);
 
     case BYTE:
-      return std::unique_ptr<ColumnReader>(
-          new ByteColumnReader(type, stripe));
+      return new ByteColumnReader(type, stripe);
 
     case LIST:
-      return std::unique_ptr<ColumnReader>(
-          new ListColumnReader(type, stripe));
+      return new ListColumnReader(type, stripe, readPhase);
 
     case MAP:
-      return std::unique_ptr<ColumnReader>(
-          new MapColumnReader(type, stripe));
+      return new MapColumnReader(type, stripe, readPhase);
 
     case UNION:
-      return std::unique_ptr<ColumnReader>(
-          new UnionColumnReader(type, stripe));
+        if (!readPhase.contains(type.getReaderCategory())) {
+            return nullptr;
+        }
+      return new UnionColumnReader(type, stripe, readPhase);
 
     case STRUCT:
-      return std::unique_ptr<ColumnReader>(
-          new StructColumnReader(type, stripe));
+        if (!readPhase.contains(type.getReaderCategory())) {
+            return nullptr;
+        }
+        return new StructColumnReader(type, stripe, readPhase);
 
     case FLOAT:
     case DOUBLE:
-      return std::unique_ptr<ColumnReader>(
-          new DoubleColumnReader(type, stripe));
+      return new DoubleColumnReader(type, stripe);
 
     case TIMESTAMP:
-      return std::unique_ptr<ColumnReader>
-        (new TimestampColumnReader(type, stripe, false));
+      return new TimestampColumnReader(type, stripe, false);
 
     case TIMESTAMP_INSTANT:
-      return std::unique_ptr<ColumnReader>
-        (new TimestampColumnReader(type, stripe, true));
+      return new TimestampColumnReader(type, stripe, true);
 
     case DECIMAL:
       // is this a Hive 0.11 or 0.12 file?
       if (type.getPrecision() == 0) {
-        return std::unique_ptr<ColumnReader>
-          (new DecimalHive11ColumnReader(type, stripe));
+        return new DecimalHive11ColumnReader(type, stripe);
 
       // can we represent the values using int64_t?
       } else if (type.getPrecision() <=
                  Decimal64ColumnReader::MAX_PRECISION_64) {
-        return std::unique_ptr<ColumnReader>
-          (new Decimal64ColumnReader(type, stripe));
+        return new Decimal64ColumnReader(type, stripe);
 
       // otherwise we use the Int128 implementation
       } else {
-        return std::unique_ptr<ColumnReader>
-          (new Decimal128ColumnReader(type, stripe));
+        return new Decimal128ColumnReader(type, stripe);
       }
 
     default:

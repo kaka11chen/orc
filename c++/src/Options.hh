@@ -34,6 +34,13 @@ namespace orc {
     ColumnSelection_TYPE_IDS = 3,
   };
 
+    enum ColumnFilter {
+        ColumnFilter_NONE = 0,
+        ColumnFilter_NAMES = 1,
+        ColumnFilter_FIELD_IDS = 2,
+        ColumnFilter_TYPE_IDS = 3,
+    };
+
 /**
  * ReaderOptions Implementation
  */
@@ -121,8 +128,11 @@ namespace orc {
 
   struct RowReaderOptionsPrivate {
     ColumnSelection selection;
-    std::list<uint64_t> includedColumnIndexes;
+      ColumnFilter filter;
+      std::list<uint64_t> includedColumnIndexes;
     std::list<std::string> includedColumnNames;
+      std::list<uint64_t> filterColumnIndexes;
+      std::list<std::string> filterColumnNames;
     uint64_t dataStart;
     uint64_t dataLength;
     bool throwOnHive11DecimalOverflow;
@@ -184,6 +194,20 @@ namespace orc {
     return *this;
   }
 
+    RowReaderOptions& RowReaderOptions::filter(const std::list<uint64_t>& filterColIndexes) {
+        privateBits->filter = ColumnFilter_FIELD_IDS;
+        privateBits->filterColumnIndexes.assign(filterColIndexes.begin(), filterColIndexes.end());
+        privateBits->filterColumnNames.clear();
+        return *this;
+    }
+
+    RowReaderOptions& RowReaderOptions::filter(const std::list<std::string>& filterColNames) {
+        privateBits->filter = ColumnFilter_NAMES;
+        privateBits->filterColumnNames.assign(filterColNames.begin(), filterColNames.end());
+        privateBits->filterColumnIndexes.clear();
+        return *this;
+    }
+
   RowReaderOptions& RowReaderOptions::includeTypes(const std::list<uint64_t>& types) {
     privateBits->selection = ColumnSelection_TYPE_IDS;
     privateBits->includedColumnIndexes.assign(types.begin(), types.end());
@@ -215,6 +239,10 @@ namespace orc {
 
   const std::list<std::string>& RowReaderOptions::getIncludeNames() const {
     return privateBits->includedColumnNames;
+  }
+
+  const std::list<std::string>& RowReaderOptions::getFilterColNames() const {
+      return privateBits->filterColumnNames;
   }
 
   uint64_t RowReaderOptions::getOffset() const {

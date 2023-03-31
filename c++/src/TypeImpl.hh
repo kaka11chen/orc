@@ -30,7 +30,7 @@ namespace orc {
 
   class TypeImpl: public Type {
   private:
-    TypeImpl* parent;
+    Type* parent;
     mutable int64_t columnId;
     mutable int64_t maximumColumnId;
     TypeKind kind;
@@ -41,6 +41,7 @@ namespace orc {
     uint64_t precision;
     uint64_t scale;
     std::map<std::string, std::string> attributes;
+    ReaderCategory readerCategory;
 
   public:
     /**
@@ -67,7 +68,11 @@ namespace orc {
 
     uint64_t getSubtypeCount() const override;
 
-    const Type* getSubtype(uint64_t i) const override;
+      Type* getParent() const override;
+
+      const Type* getSubtype(uint64_t i) const override;
+
+    Type* getSubtype(uint64_t i) override;
 
     const std::string& getFieldName(uint64_t i) const override;
 
@@ -88,7 +93,11 @@ namespace orc {
 
     std::string getAttributeValue(const std::string& key) const override;
 
-    std::string toString() const override;
+      ReaderCategory getReaderCategory() const override;
+
+      void setReaderCategory(ReaderCategory _readerCategory) override;
+
+      std::string toString() const override;
 
     Type* addStructField(const std::string& fieldName,
                          std::unique_ptr<Type> fieldType) override;

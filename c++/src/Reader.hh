@@ -33,7 +33,70 @@ namespace orc {
 
   static const uint64_t DIRECTORY_SIZE_GUESS = 16 * 1024;
 
-  /**
+//    class ORCFilterImpl : public ORCFilter {
+//    public:
+//        ORCFilterImpl() = default;
+//        ~ORCFilterImpl() override = default;
+//        bool filter(ColumnVectorBatch& data) override {
+//            return false;
+//        }
+//    private:
+//    };
+//
+//    class ORCFilterFactory {
+//    public:
+//        static ORCFilter* createFilter() {
+//            return new ORCFilterImpl();
+//        }
+//    };
+
+    class ReaderContext {
+    public:
+        ReaderContext() = default;
+        // ...
+
+//        std::unordered_set<int>& getColumnFilterIds() {
+//            return filterColumnIds;
+//        }
+
+        const ORCFilter* getFilterCallback() const {
+            return filter;
+        }
+
+        ReaderContext& setFilterCallback(
+                std::unordered_set<int> _filterColumnIds,
+                const ORCFilter* _filter) {
+            this->filterColumnIds = std::move(_filterColumnIds);
+            this->filter = _filter;
+            return *this;
+        }
+
+//        ReaderCategory getReaderCategory(int columnId) {
+//            ReaderCategory result;
+//            if (filterColumnIds.count(columnId)) {
+//                // parent filter columns that might include non-filter children. These are classified as
+//                // FILTER_PARENT. This is used during the reposition for non-filter read. Only Struct and
+//                // Union Readers are supported currently
+//                TypeDescription col = columnId == -1 ? null : getSchemaEvolution()
+//                        .getFileSchema()
+//                        .findSubtype(columnId);
+//                if (col == nullptr || col.getChildren() == nullptr || col.getChildren().isEmpty()) {
+//                    result = ReaderCategory::FILTER_CHILD;
+//                } else {
+//                    result = ReaderCategory::FILTER_PARENT;
+//                }
+//            } else {
+//                result = ReaderCategory::NON_FILTER;
+//            }
+//            return result;
+//        }
+
+    private:
+        std::unordered_set<int> filterColumnIds;
+        const ORCFilter* filter;
+    };
+
+    /**
   * WriterVersion Implementation
   */
   class WriterVersionImpl {
@@ -135,6 +198,7 @@ namespace orc {
     uint64_t currentStripe;
     uint64_t lastStripe; // the stripe AFTER the last one
     uint64_t currentRowInStripe;
+    uint64_t followRowInStripe;
     uint64_t rowsInCurrentStripe;
     proto::StripeInformation currentStripeInfo;
     proto::StripeFooter currentStripeFooter;
@@ -152,6 +216,16 @@ namespace orc {
 
     // desired timezone to return data of timestamp types.
     const Timezone& readerTimezone;
+
+    std::unique_ptr<ReaderContext> readerContext;
+    const ORCFilter* filter;
+    ReadPhase startReadPhase;
+    bool needsFollowColumnsRead;
+
+//    std::map<std::string, uint64_t> nameIdMap;
+    std::map<uint64_t, const Type*> idTypeMap;
+    std::map<std::string, Type*> nameTypeMap;
+      std::vector<std::string> columns;
 
     // load stripe index if not done so
     void loadStripeIndex();
@@ -178,7 +252,7 @@ namespace orc {
      * Seek to the start of a row group in the current stripe
      * @param rowGroupEntryId the row group id to seek to
      */
-    void seekToRowGroup(uint32_t rowGroupEntryId);
+    void seekToRowGroup(uint32_t rowGroupEntryId, const ReadPhase& readPhase);
 
     /**
      * Check if the file has bad bloom filters. We will skip using them in the
@@ -187,6 +261,10 @@ namespace orc {
      */
     bool hasBadBloomFilters();
 
+    // build map from type name and id, id to Type
+    void buildTypeNameIdMap(Type* type);
+    std::string toDotColumnPath();
+
   public:
    /**
     * Constructor that lets the user specify additional options.
@@ -194,9 +272,10 @@ namespace orc {
     * @param options options for reading
     */
     RowReaderImpl(std::shared_ptr<FileContents> contents,
-                  const RowReaderOptions& options);
+                  const RowReaderOptions& options,
+                  const ORCFilter* _filter = nullptr);
 
-    // Select the columns from the options object
+      // Select the columns from the options object
     const std::vector<bool> getSelectedColumns() const override;
 
     const Type& getSelectedType() const override;
@@ -204,7 +283,9 @@ namespace orc {
     std::unique_ptr<ColumnVectorBatch> createRowBatch(uint64_t size
                                                       ) const override;
 
-    bool next(ColumnVectorBatch& data) override;
+    bool next(ColumnVectorBatch& data, void* arg) override;
+
+    void nextBatch(ColumnVectorBatch& data, int batchSize, const ReadPhase& readPhase, uint16_t* sel_rowid_idx, void* arg);
 
     CompressionKind getCompression() const;
 
@@ -217,6 +298,9 @@ namespace orc {
     const FileContents& getFileContents() const;
     bool getThrowOnHive11DecimalOverflow() const;
     int32_t getForcedScaleOnHive11Decimal() const;
+  private:
+      int computeRGIdx(uint64_t rowIndexStride, long rowIdx);
+      ReadPhase prepareFollowReaders(uint64_t rowIndexStride, long toFollowRow, long fromFollowRow);
   };
 
   class ReaderImpl : public Reader {
@@ -244,6 +328,7 @@ namespace orc {
     // metadata
     mutable std::unique_ptr<proto::Metadata> metadata;
     mutable bool isMetadataLoaded;
+
    public:
     /**
      * Constructor that lets the user specify additional options.
@@ -295,9 +380,9 @@ namespace orc {
     std::unique_ptr<StripeStatistics>
     getStripeStatistics(uint64_t stripeIndex) const override;
 
-    std::unique_ptr<RowReader> createRowReader() const override;
+    std::unique_ptr<RowReader> createRowReader(const ORCFilter* filter = nullptr) const override;
 
-    std::unique_ptr<RowReader> createRowReader(const RowReaderOptions& options
+    std::unique_ptr<RowReader> createRowReader(const RowReaderOptions& options, const ORCFilter* filter = nullptr
                                                ) const override;
 
     uint64_t getContentLength() const override;

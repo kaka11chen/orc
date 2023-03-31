@@ -39,6 +39,13 @@ namespace orc {
   struct ReaderOptionsPrivate;
   struct RowReaderOptionsPrivate;
 
+
+    class ORCFilter {
+    public:
+        virtual ~ORCFilter() {}
+        virtual void filter(ColumnVectorBatch& data, uint16_t* sel, uint16_t size, void* arg = nullptr) const = 0;
+    };
+
   /**
    * Options for creating a Reader.
    */
@@ -137,6 +144,25 @@ namespace orc {
      */
     RowReaderOptions& include(const std::list<std::string>& include);
 
+      /**
+   * For files that have structs as the top-level object, select the fields
+   * to read. The first field is 0, the second 1, and so on. By default,
+   * all columns are read. This option clears any previous setting of
+   * the selected columns.
+   * @param filterColIndexes a list of fields to read
+   * @return this
+   */
+      RowReaderOptions& filter(const std::list<uint64_t>& filterColIndexes);
+
+      /**
+       * For files that have structs as the top-level object, select the fields
+       * to read by name. By default, all columns are read. This option clears
+       * any previous setting of the selected columns.
+       * @param filterColNames a list of fields to read
+       * @return this
+       */
+      RowReaderOptions& filter(const std::list<std::string>& filterColNames);
+
     /**
      * Selects which type ids to read. The root type is always 0 and the
      * rest of the types are labeled in a preorder traversal of the tree.
@@ -227,6 +253,12 @@ namespace orc {
      * columns are also selected.
      */
     const std::list<std::string>& getIncludeNames() const;
+
+    /**
+   * Get the list of filter columns to read. All children of the selected
+   * columns are also selected.
+   */
+      const std::list<std::string>& getFilterColNames() const;
 
     /**
      * Get the start of the range for the data being processed.
@@ -451,14 +483,14 @@ namespace orc {
      * Create a RowReader based on this reader with the default options.
      * @return a RowReader to read the rows
      */
-    virtual ORC_UNIQUE_PTR<RowReader> createRowReader() const = 0;
+    virtual ORC_UNIQUE_PTR<RowReader> createRowReader(const ORCFilter* filter = nullptr) const = 0;
 
     /**
      * Create a RowReader based on this reader.
      * @param options RowReader Options
      * @return a RowReader to read the rows
      */
-    virtual ORC_UNIQUE_PTR<RowReader> createRowReader(const RowReaderOptions& options) const = 0;
+    virtual ORC_UNIQUE_PTR<RowReader> createRowReader(const RowReaderOptions& options, const ORCFilter* filter = nullptr) const = 0;
 
     /**
      * Get the name of the input stream.
@@ -513,13 +545,14 @@ namespace orc {
     getBloomFilters(uint32_t stripeIndex, const std::set<uint32_t>& included) const = 0;
   };
 
-  /**
+    /**
    * The interface for reading rows in ORC files.
    * This is an an abstract class that will be subclassed as necessary.
    */
   class RowReader {
   public:
     virtual ~RowReader();
+
     /**
      * Get the selected type of the rows in the file. The file's row type
      * is projected down to just the selected columns. Thus, if the file's
@@ -551,7 +584,7 @@ namespace orc {
      * @return true if a non-zero number of rows were read or false if the
      *   end of the file was reached.
      */
-    virtual bool next(ColumnVectorBatch& data) = 0;
+    virtual bool next(ColumnVectorBatch& data, void* arg = nullptr) = 0;
 
     /**
      * Get the row number of the first row in the previously read batch.
