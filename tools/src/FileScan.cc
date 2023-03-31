@@ -31,6 +31,7 @@ class ORCFilterImpl : public orc::ORCFilter {
         ORCFilterImpl() = default;
         ~ORCFilterImpl() override = default;
         void filter(orc::ColumnVectorBatch& data, uint16_t* sel, uint16_t size, void* arg = nullptr) const override {
+            fprintf(stderr, "filter\n");
         }
     private:
     };

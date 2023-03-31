@@ -99,6 +99,7 @@ namespace orc {
   class ColumnReader {
   protected:
     std::unique_ptr<ByteRleDecoder> notNullDecoder;
+    const Type& type;
     uint64_t columnId;
     MemoryPool& memoryPool;
 
@@ -108,9 +109,13 @@ namespace orc {
     }
 
   public:
-    ColumnReader(const Type& type, StripeStreams& stipe);
+    ColumnReader(const Type& _type, StripeStreams& stipe);
 
     virtual ~ColumnReader();
+
+      const Type& getType() const {
+          return type;
+      }
 
     /**
      * Skip number of specified rows.

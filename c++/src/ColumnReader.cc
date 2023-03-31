@@ -46,9 +46,10 @@ namespace orc {
     }
   }
 
-  ColumnReader::ColumnReader(const Type& type,
+  ColumnReader::ColumnReader(const Type& _type,
                              StripeStreams& stripe
-                             ): columnId(type.getColumnId()),
+                             ): type(_type),
+                                columnId(_type.getColumnId()),
                                 memoryPool(stripe.getMemoryPool()) {
     std::unique_ptr<SeekableInputStream> stream =
       stripe.getStream(columnId, proto::Stream_Kind_PRESENT, true);
@@ -924,7 +925,9 @@ namespace orc {
   uint64_t StructColumnReader::skip(uint64_t numValues, const ReadPhase& readPhase) {
     numValues = ColumnReader::skip(numValues, readPhase);
     for(auto& ptr : children) {
-      ptr->skip(numValues, readPhase);
+        if (shouldProcessChild(ptr->getType().getReaderCategory(), readPhase)) {
+            ptr->skip(numValues, readPhase);
+        }
     }
     return numValues;
   }
