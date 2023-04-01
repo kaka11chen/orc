@@ -206,7 +206,7 @@ namespace orc {
 
     bool enableEncodedBlock;
     // internal methods
-    void startNextStripe();
+    void startNextStripe(const ReadPhase& readPhase);
 
     // row index of current stripe with column id as the key
     std::unordered_map<uint64_t, proto::RowIndex> rowIndexes;

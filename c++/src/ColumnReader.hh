@@ -134,7 +134,8 @@ namespace orc {
      */
     virtual void next(ColumnVectorBatch& rowBatch,
                       uint64_t numValues,
-                      char* notNull);
+                      char* notNull,
+                      const ReadPhase& readPhase);
 
     /**
      * Read the next group of values without decoding
@@ -146,10 +147,11 @@ namespace orc {
      */
     virtual void nextEncoded(ColumnVectorBatch& rowBatch,
                       uint64_t numValues,
-                      char* notNull)
+                      char* notNull,
+                      const ReadPhase& readPhase)
     {
       rowBatch.isEncoded = false;
-      next(rowBatch, numValues, notNull);
+      next(rowBatch, numValues, notNull, readPhase);
     }
 
     /**

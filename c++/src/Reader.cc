@@ -453,7 +453,7 @@ namespace orc {
     currentStripe = seekToStripe;
     currentRowInStripe = rowNumber - firstRowOfStripe[currentStripe];
     previousRow = rowNumber;
-    startNextStripe();
+    startNextStripe(startReadPhase);
 
     // when predicate push down is enabled, above call to startNextStripe()
     // will move current row to 1st matching row group; here we only need
@@ -1086,7 +1086,7 @@ namespace orc {
     return memory + decompressorMemory ;
   }
 
-  void RowReaderImpl::startNextStripe() {
+  void RowReaderImpl::startNextStripe(const ReadPhase& readPhase) {
     reader.reset(); // ColumnReaders use lots of memory; free old memory first
     rowIndexes.clear();
     bloomFilterIndex.clear();
@@ -1138,7 +1138,7 @@ namespace orc {
                                       *contents->stream,
                                       writerTimezone,
                                       readerTimezone);
-      reader.reset(buildReader(*contents->schema, stripeStreams, startReadPhase));
+      reader.reset(buildReader(*contents->schema, stripeStreams, readPhase));
 
       if (sargsApplier) {
         // move to the 1st selected row group when PPD is enabled.
@@ -1148,7 +1148,7 @@ namespace orc {
                                                    sargsApplier->getRowGroups());
         previousRow = firstRowOfStripe[currentStripe] + currentRowInStripe - 1;
         if (currentRowInStripe > 0) {
-          seekToRowGroup(static_cast<uint32_t>(currentRowInStripe / footer->rowindexstride()), startReadPhase);
+          seekToRowGroup(static_cast<uint32_t>(currentRowInStripe / footer->rowindexstride()), readPhase);
         }
         needsFollowColumnsRead = true;
       }
@@ -1171,7 +1171,7 @@ namespace orc {
               return false;
           }
           if (currentRowInStripe == 0) {
-              startNextStripe();
+              startNextStripe(startReadPhase);
               followRowInStripe = currentRowInStripe;
           }
           rowsToRead =
@@ -1238,10 +1238,10 @@ namespace orc {
 //            data.selectedInUse = false;
         }
         if (enableEncodedBlock) {
-          reader->nextEncoded(data, batchSize, nullptr);
+          reader->nextEncoded(data, batchSize, nullptr, readPhase);
         }
         else {
-          reader->next(data, batchSize, nullptr);
+          reader->next(data, batchSize, nullptr, readPhase);
         }
         if (readPhase == ReadPhase::ALL || readPhase == ReadPhase::LEADERS) {
             // Set the batch size when reading everything or when reading FILTER columns
@@ -1301,7 +1301,7 @@ namespace orc {
         if (needsFollowColumnsRead) {
             needsFollowColumnsRead = false;
 //            planner.readFollowData(indexes, includedRowGroups, needRG, false);
-            startNextStripe();
+//            startNextStripe(ReadPhase::FOLLOWERS);
         }
 
             // 3. Position the non-filter readers to the required RG and skipRows
