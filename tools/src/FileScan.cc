@@ -126,10 +126,12 @@ int main(int argc, char* argv[]) {
   } else {
     for(int i=0; i < argc; ++i) {
       try {
-          orc::Literal literal(9223372036854775807L);
-          std::unique_ptr<orc::SearchArgument> sargs = orc::SearchArgumentFactory::newBuilder()
-                  ->equals("long1", orc::PredicateDataType::LONG, literal).build();
-          rowReaderOptions.searchArgument(std::move(sargs));
+//          orc::Literal literal(9223372036854775807L);
+//          std::unique_ptr<orc::SearchArgument> sargs = orc::SearchArgumentFactory::newBuilder()
+//                  ->equals("long1", orc::PredicateDataType::LONG, literal).build();
+//          std::unique_ptr<orc::SearchArgument> sargs = orc::SearchArgumentFactory::newBuilder()
+//                  ->startNot().isNull("long1", orc::PredicateDataType::LONG).end().build();
+//          rowReaderOptions.searchArgument(std::move(sargs));
         scanFile(std::cout, argv[i], batchSize, rowReaderOptions);
       } catch (std::exception& ex) {
         std::cerr << "Caught exception in " << argv[i]

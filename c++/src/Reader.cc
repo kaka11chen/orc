@@ -1282,7 +1282,10 @@ namespace orc {
      * case of a seek otherwise will be FOLLOWERS
      */
     ReadPhase RowReaderImpl::prepareFollowReaders(uint64_t rowIndexStride, long toFollowRow, long fromFollowRow) {
-        // 1. Determine the required row group and skip rows needed from the RG start
+        if (!sargsApplier) {
+            return ReadPhase::FOLLOWERS_AND_PARENTS;
+        }
+            // 1. Determine the required row group and skip rows needed from the RG start
         int needRG = computeRGIdx(rowIndexStride, toFollowRow);
         // The current row is not yet read so we -1 to compute the previously read row group
         int readRG = computeRGIdx(rowIndexStride, fromFollowRow - 1);
