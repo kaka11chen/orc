@@ -283,7 +283,7 @@ namespace orc {
     std::unique_ptr<ColumnVectorBatch> createRowBatch(uint64_t size
                                                       ) const override;
 
-    bool next(ColumnVectorBatch& data, void* arg) override;
+    uint64_t next(ColumnVectorBatch& data, void* arg) override;
 
     void nextBatch(ColumnVectorBatch& data, int batchSize, const ReadPhase& readPhase, uint16_t* sel_rowid_idx, void* arg);
 

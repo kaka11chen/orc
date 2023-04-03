@@ -584,7 +584,7 @@ namespace orc {
      * @return true if a non-zero number of rows were read or false if the
      *   end of the file was reached.
      */
-    virtual bool next(ColumnVectorBatch& data, void* arg = nullptr) = 0;
+    virtual uint64_t next(ColumnVectorBatch& data, void* arg = nullptr) = 0;
 
     /**
      * Get the row number of the first row in the previously read batch.

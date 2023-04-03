@@ -1155,8 +1155,9 @@ namespace orc {
     }
   }
 
-  bool RowReaderImpl::next(ColumnVectorBatch& data, void* arg) {
-      uint64_t rowsToRead;
+  uint64_t RowReaderImpl::next(ColumnVectorBatch& data, void* arg) {
+      uint64_t readRows = 0;
+      uint64_t rowsToRead = 0;
       // do...while is required to handle the case where the filter eliminates all rows in the
       // batch, we never return an empty batch unless the file is exhausted
       do {
@@ -1168,7 +1169,7 @@ namespace orc {
               } else {
                   previousRow = 0;
               }
-              return false;
+              return readRows;
           }
           if (currentRowInStripe == 0) {
               startNextStripe(startReadPhase);
@@ -1189,7 +1190,7 @@ namespace orc {
               previousRow = lastStripe <= 0 ? footer->numberofrows() :
                             firstRowOfStripe[lastStripe - 1] +
                             footer->stripes(static_cast<int>(lastStripe - 1)).numberofrows();
-              return false;
+              return readRows;
           }
           uint16_t sel_rowid_idx[rowsToRead];
           nextBatch(data, rowsToRead, startReadPhase, sel_rowid_idx, arg);
@@ -1206,6 +1207,7 @@ namespace orc {
           // update row number
           previousRow = firstRowOfStripe[currentStripe] + currentRowInStripe;
           currentRowInStripe += rowsToRead;
+          readRows += rowsToRead;
 
           // check if we need to advance to next selected row group
           if (sargsApplier) {
@@ -1228,7 +1230,7 @@ namespace orc {
               currentRowInStripe = 0;
           }
       } while (rowsToRead != 0 && data.numElements == 0);
-    return rowsToRead != 0;
+    return readRows;
   }
 
   void RowReaderImpl::nextBatch(ColumnVectorBatch& data, int batchSize, const ReadPhase& readPhase, uint16_t* sel_rowid_idx, void* arg) {
