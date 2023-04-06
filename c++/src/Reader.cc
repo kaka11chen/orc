@@ -1107,9 +1107,10 @@ namespace orc {
       currentStripeFooter = getStripeFooter(currentStripeInfo, *contents.get());
       rowsInCurrentStripe = currentStripeInfo.numberofrows();
 
+      // read row group statistics and bloom filters of current stripe
+      loadStripeIndex();
+
       if (sargsApplier) {
-        // read row group statistics and bloom filters of current stripe
-        loadStripeIndex();
 
         // select row groups to read in the current stripe
         sargsApplier->pickRowGroups(rowsInCurrentStripe,
@@ -1150,8 +1151,8 @@ namespace orc {
         if (currentRowInStripe > 0) {
           seekToRowGroup(static_cast<uint32_t>(currentRowInStripe / footer->rowindexstride()), readPhase);
         }
-        needsFollowColumnsRead = true;
       }
+        needsFollowColumnsRead = true;
     }
   }
 
@@ -1284,9 +1285,9 @@ namespace orc {
      * case of a seek otherwise will be FOLLOWERS
      */
     ReadPhase RowReaderImpl::prepareFollowReaders(uint64_t rowIndexStride, long toFollowRow, long fromFollowRow) {
-        if (!sargsApplier) {
-            return ReadPhase::FOLLOWERS_AND_PARENTS;
-        }
+//        if (!sargsApplier) {
+//            return ReadPhase::FOLLOWERS_AND_PARENTS;
+//        }
             // 1. Determine the required row group and skip rows needed from the RG start
         int needRG = computeRGIdx(rowIndexStride, toFollowRow);
         // The current row is not yet read so we -1 to compute the previously read row group
